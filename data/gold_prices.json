@@ -1,0 +1,11 @@
+{
+  "symbol": "XAUUSD",
+  "currency": "USD",
+  "unit": "troy_ounce",
+  "frequency": "daily",
+  "source": "https://stooq.com/q/d/l/?s=xauusd&i=d",
+  "first_date": null,
+  "last_date": null,
+  "count": 0,
+  "prices": {}
+}
