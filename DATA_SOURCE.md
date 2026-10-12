@@ -1,19 +1,20 @@
-# XAU/USD daily gold price history
+# XAU/USD daily gold prices
 
-Gold prices are stored in `data/gold_prices.json` as USD per troy ounce, one record per available trading date (OHLC).
+## Source
 
-## Data source and coverage
+Daily historical indicative spot gold data: https://xaus.com/api/v1/history
+Documentation: https://xaus.com/api/
 
-Current import source: https://github.com/FeziweMelvin/XAUUSD-Gold-Price (`XAU_1d_data.csv`, MetaTrader-derived daily bars). At verification on 2026-10-12 the CSV contained dates from 2004-06-11 to 2025-06-06. **This is historical but NOT current data.** The repository upstream README's stated automated refresh was not reflected in the verified file. Do not use it for current quotes, or treat missing days as filled.
+Source: XAUS (https://xaus.com/). The publisher describes the API as free to use and appreciates attribution; it is not a government or exchange official benchmark. API history covers **up to five years**, not all historical dates. The publisher's public wording does not expressly grant an irrevocable bulk redistribution licence. Confirm redistribution permission before treating the public repository as a licensed historical-data mirror.
 
-The previous Stooq endpoint was removed after a GitHub Actions connection timeout. Data provider licensing/redistribution and broker-specific daily boundaries should be reviewed before commercial use.
+## Format
 
-## Refresh
+`data/gold_prices.json`: USD per troy ounce, date-keyed prices, with a required `close` and optional `open`, `high`, `low` when actually supplied by the API. Missing fields are not invented. Non-trading dates are omitted. `source`, `first_date`, `last_date` and `count` document coverage.
 
-GitHub Actions runs at 03:30 UTC daily, on manual dispatch, and when the script/workflow changes. It fetches the upstream file, validates OHLC, and writes JSON only when changed. This does **not** guarantee new prices when the upstream file has not been updated. The script emits a warning if its latest record is older than seven days.
+## Updates
 
-## Schema
+Workflow runs daily at 03:30 UTC, on manual dispatch and when script/workflow changes. Each run validates the API response and refuses unexpectedly short or malformed data. If the upstream API fails, existing data remains unchanged. A count=0 placeholder is not real historical data.
 
-`symbol`, `currency`, `unit`, `frequency`, `source`, `first_date`, `last_date`, `count`, and `prices` (date-keyed `open`, `high`, `low`, `close`).
+## Licensing and limitations
 
-An initial count=0 placeholder is not real data. The first successful action imports full available history.
+This is indicative market data, not LBMA official benchmark or exchange settlement. Attribution: XAUS — https://xaus.com/. Verify provider data provenance and redistribution rights before commercial or bulk publication. The initial API schema and GitHub Actions network reachability must be verified on a successful workflow run.
