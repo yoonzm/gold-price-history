@@ -1,0 +1,34 @@
+name: Update daily gold prices
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "scripts/update_gold.py"
+      - ".github/workflows/update-gold.yml"
+  schedule:
+    - cron: "30 3 * * *"
+permissions:
+  contents: write
+concurrency:
+  group: update-gold-prices
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download and validate daily gold prices
+        run: python scripts/update_gold.py
+      - name: Commit updated JSON
+        run: |
+          if [[ -n "$(git status --porcelain -- data/gold_prices.json)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/gold_prices.json
+            git commit -m "data: refresh historical XAUUSD daily prices"
+            git push
+          fi
