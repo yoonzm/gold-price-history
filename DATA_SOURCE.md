@@ -1,15 +1,19 @@
-# Gold price history
+# XAU/USD daily gold price history
 
-Daily XAU/USD (USD per troy ounce) OHLC data.
+Gold prices are stored in `data/gold_prices.json` as USD per troy ounce, one record per available trading date (OHLC).
 
-## Source
-Stooq CSV: https://stooq.com/q/d/l/?s=xauusd&i=d
+## Data source and coverage
+
+Current import source: https://github.com/FeziweMelvin/XAUUSD-Gold-Price (`XAU_1d_data.csv`, MetaTrader-derived daily bars). At verification on 2026-10-12 the CSV contained dates from 2004-06-11 to 2025-06-06. **This is historical but NOT current data.** The repository upstream README's stated automated refresh was not reflected in the verified file. Do not use it for current quotes, or treat missing days as filled.
+
+The previous Stooq endpoint was removed after a GitHub Actions connection timeout. Data provider licensing/redistribution and broker-specific daily boundaries should be reviewed before commercial use.
 
 ## Refresh
-GitHub Actions runs at 03:30 UTC every day and can also be run manually from Actions > Update daily gold prices > Run workflow. A push of the script or workflow also triggers a run. The first successful run backfills all history available from the provider.
 
-## Format
-`data/gold_prices.json` contains `prices`, keyed by ISO date, with `open`, `high`, `low`, `close`. `count`, `first_date`, and `last_date` describe coverage. Non-trading dates are omitted. Dates and closing conventions follow the source provider.
+GitHub Actions runs at 03:30 UTC daily, on manual dispatch, and when the script/workflow changes. It fetches the upstream file, validates OHLC, and writes JSON only when changed. This does **not** guarantee new prices when the upstream file has not been updated. The script emits a warning if its latest record is older than seven days.
 
-## Important
-The initial committed JSON is an EMPTY placeholder (count=0), not historical data. Historical records only appear after the first successful workflow run. This project does not guarantee every calendar day, all-time coverage, exchange-specific official settlement prices, or uninterrupted provider availability. Validate provider licensing and attribution requirements before redistribution or commercial use. If GitHub Actions cannot push, check repository Actions workflow permissions for read/write access.
+## Schema
+
+`symbol`, `currency`, `unit`, `frequency`, `source`, `first_date`, `last_date`, `count`, and `prices` (date-keyed `open`, `high`, `low`, `close`).
+
+An initial count=0 placeholder is not real data. The first successful action imports full available history.
