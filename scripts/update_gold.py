@@ -1,59 +1,54 @@
 #!/usr/bin/env python3
-"""Fetch and validate daily XAU/USD OHLC prices from Stooq."""
+"""Import historical XAUUSD daily OHLC from a public MetaTrader-derived CSV."""
 import csv
 import io
 import json
 import math
-import os
-from datetime import date, datetime, timezone
+from datetime import datetime, date
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-URL = "https://stooq.com/q/d/l/?s=xauusd&i=d"
+URL = "https://raw.githubusercontent.com/FeziweMelvin/XAUUSD-Gold-Price/main/XAU_1d_data.csv"
 OUTPUT = Path("data/gold_prices.json")
 
 def main():
-    request = Request(URL, headers={"User-Agent": "Mozilla/5.0 gold-price-history/1.0"})
-    with urlopen(request, timeout=90) as response:
-        content = response.read().decode("utf-8-sig")
-    rows = csv.DictReader(io.StringIO(content))
-    if not rows.fieldnames or not {"Date", "Open", "High", "Low", "Close"}.issubset(rows.fieldnames):
-        raise ValueError("Unexpected CSV schema; refusing to overwrite existing data")
+    req = Request(URL, headers={"User-Agent": "gold-price-history/1.1", "Accept": "text/plain"})
+    with urlopen(req, timeout=45) as response:
+        raw = response.read().decode("utf-8-sig")
+    reader = csv.DictReader(io.StringIO(raw), delimiter=";")
+    if not reader.fieldnames or not {"Date","Open","High","Low","Close"}.issubset(reader.fieldnames):
+        raise ValueError("Unexpected upstream schema")
     prices = {}
-    today = date.today()
-    for row in rows:
-        day = date.fromisoformat(row["Date"].strip())
-        if day > today:
+    for row in reader:
+        day = datetime.strptime(row["Date"].strip(), "%Y.%m.%d %H:%M").date()
+        if day > date.today():
             continue
-        values = {k.lower(): float(row[k]) for k in ("Open", "High", "Low", "Close")}
-        if not all(math.isfinite(v) and v > 0 for v in values.values()):
-            raise ValueError(f"Invalid price for {day}")
-        if values["high"] < max(values.values()) or values["low"] > min(values.values()):
+        ohlc = {k.lower(): float(row[k]) for k in ("Open","High","Low","Close")}
+        if any(not math.isfinite(v) or v <= 0 for v in ohlc.values()):
+            raise ValueError(f"Invalid numeric price for {day}")
+        if ohlc["high"] < max(ohlc.values()) or ohlc["low"] > min(ohlc.values()):
             raise ValueError(f"Invalid OHLC range for {day}")
         key = day.isoformat()
         if key in prices:
             raise ValueError(f"Duplicate date: {key}")
-        prices[key] = values
+        prices[key] = ohlc
     if len(prices) < 1000:
-        raise ValueError(f"Only {len(prices)} rows returned; refusing partial overwrite")
-    payload = {
-        "symbol": "XAUUSD",
-        "currency": "USD",
-        "unit": "troy_ounce",
-        "frequency": "daily",
-        "source": URL,
-        "first_date": min(prices),
-        "last_date": max(prices),
-        "count": len(prices),
-        "prices": dict(sorted(prices.items()))
+        raise ValueError("Incomplete upstream history; refusing overwrite")
+    output = {
+        "symbol": "XAUUSD", "currency": "USD", "unit": "troy_ounce",
+        "frequency": "daily", "source": URL,
+        "first_date": min(prices), "last_date": max(prices),
+        "count": len(prices), "prices": dict(sorted(prices.items()))
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    rendered = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    rendered = json.dumps(output, ensure_ascii=False, indent=2) + "\n"
     if not OUTPUT.exists() or OUTPUT.read_text(encoding="utf-8") != rendered:
         OUTPUT.write_text(rendered, encoding="utf-8")
-        print(f"Saved {len(prices)} daily records through {max(prices)}")
+        print(f"Saved {len(prices)} records through {max(prices)}")
     else:
         print("No changes")
+    if (date.today() - date.fromisoformat(max(prices))).days > 7:
+        print("WARNING: upstream data is stale; this source does not cover current prices.")
 
 if __name__ == "__main__":
     main()
