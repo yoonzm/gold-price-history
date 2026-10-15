@@ -5,15 +5,10 @@
   "frequency": "daily",
   "source": "https://xaus.com/api/v1/history",
   "license_note": "API data free to use; attribution to xaus.com",
-  "first_date": "2021-10-14",
-  "last_date": "2026-10-14",
+  "first_date": "2021-10-15",
+  "last_date": "2026-10-15",
   "count": 1258,
   "prices": {
-    "2021-10-14": {
-      "close": 1797.9,
-      "high": 1801.9,
-      "low": 1787.6
-    },
     "2021-10-15": {
       "close": 1768.3,
       "high": 1797.7,
@@ -6295,9 +6290,14 @@
       "low": 4169.7
     },
     "2026-10-14": {
-      "close": 4171.0,
+      "close": 4107.9,
       "high": 4193.5,
-      "low": 4166.0
+      "low": 4095.0
+    },
+    "2026-10-15": {
+      "close": 4164.5,
+      "high": 4183.3,
+      "low": 4120.9
     }
   }
 }
