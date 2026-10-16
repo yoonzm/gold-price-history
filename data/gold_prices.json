@@ -6,8 +6,8 @@
   "source": "https://xaus.com/api/v1/history",
   "license_note": "API data free to use; attribution to xaus.com",
   "first_date": "2021-10-15",
-  "last_date": "2026-10-15",
-  "count": 1258,
+  "last_date": "2026-10-16",
+  "count": 1259,
   "prices": {
     "2021-10-15": {
       "close": 1768.3,
@@ -6295,9 +6295,14 @@
       "low": 4095.0
     },
     "2026-10-15": {
-      "close": 4164.5,
-      "high": 4183.3,
+      "close": 4170.1,
+      "high": 4197.7,
       "low": 4120.9
+    },
+    "2026-10-16": {
+      "close": 4191.8,
+      "high": 4201.3,
+      "low": 4167.5
     }
   }
 }
